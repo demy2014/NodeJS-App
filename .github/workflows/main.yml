@@ -28,7 +28,7 @@ jobs:
               
     - name: Get latest tag
       id: tag
-      uses: demy06031978/nodejs-app:latest@main
+      uses: demy06031978/nodejs-app@main
       with:
        cmd: yq '.modules[].sources[] | select(.url == "*/foo.git").tag' main.yml
        
