@@ -3,54 +3,59 @@ name: Publish Docker image
 on:
   push:
     branches: ['main']
-
 jobs:
-  push_to_registry:
-    name: Push Docker image to Docker Hub
-    runs-on: ubuntu-20.04
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
     steps:
-    - uses: actions/setup-node@v4
-      with:
-           node-version: 21
-        
-    - name: Check out the repo
-      uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
-      with:
-       python-version: 3.8.2
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Save state
-      run: echo "{name}={value}" >> $GITHUB_STATE
-    - name: Set output
-      run: echo "{name}={value}" >> $GITHUB_OUTPUT
+      - name: Check out the repo
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+           python-version: 3.8.2
+
+      - name: Save state
+        run: echo "{name}={value}" >> $GITHUB_STATE
+      - name: Set output
+        run: echo "{name}={value}" >> $GITHUB_OUTPUT
 
     
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Show latest tag
-      run: |
-       echo '${{ steps.tag.outputs.value }}'   
+      - name: Show latest tag
+        run: |
+         echo '${{ steps.tag.outputs.value }}'   
           
-    - name: Extract metadata (tags, labels) for Docker
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-          images: demy06031978/nodejs-app  
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+           images: demy06031978/nodejs-app  
    
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
           context: .
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}   
 
-    - id: pass-report-into-summary
-      name: Pass Report into the Summary
-      run: |
+      - id: pass-report-into-summary
+        name: Pass Report into the Summary
+        run: |
            {
             echo "### My Report Header"
             echo "\`\`\`"
